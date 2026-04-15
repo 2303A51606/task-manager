@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Task Manager</title>
+    <style>
+        body { font-family: Arial; text-align: center; }
+        input { padding: 8px; }
+        button { padding: 8px; margin: 5px; }
+        li { list-style: none; margin: 10px; }
+        .done { text-decoration: line-through; color: gray; }
+    </style>
+</head>
+<body>
+
+<h2>Task Manager ✅</h2>
+
+<input id="task" placeholder="Enter task">
+<button onclick="addTask()">Add</button>
+
+<ul id="list"></ul>
+
+<script>
+const API = "http://localhost:5000/tasks";
+
+async function loadTasks() {
+    const res = await fetch(API);
+    const data = await res.json();
+
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+
+    data.forEach(t => {
+        const li = document.createElement("li");
+        li.className = t.done ? "done" : "";
+
+        li.innerHTML = `
+            ${t.text}
+            <button onclick="toggle(${t.id})">✔</button>
+            <button onclick="removeTask(${t.id})">❌</button>
+        `;
+
+        list.appendChild(li);
+    });
+}
+
+async function addTask() {
+    const text = document.getElementById("task").value;
+
+    await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+    });
+
+    document.getElementById("task").value = "";
+    loadTasks();
+}
+
+async function toggle(id) {
+    await fetch(API + "/" + id, { method: "PUT" });
+    loadTasks();
+}
+
+async function removeTask(id) {
+    await fetch(API + "/" + id, { method: "DELETE" });
+    loadTasks();
+}
+
+loadTasks();
+</script>
+
+</body>
+</html>
